@@ -37,10 +37,22 @@ app.post('/split-payments/compute', (req, res) => {
 
   function flatEvaluation() {
     for (let i = 0; i < flat.length; i++) {
-      SplitBreakDown.push({
-        "SplitEntityId": flat[i].SplitEntityId,
-        "Amount":flat[i].SplitValue
-      })
+      if (flat[i].SplitValue < 0) {
+        SplitBreakDown.push({
+          "SplitEntityId": flat[i].SplitEntityId,
+          "Amount": "cannot compute value lesser than 0"
+        })
+      } else if (flat[i].SplitValue > Amount) {
+        SplitBreakDown.push({
+          "SplitEntityId": flat[i].SplitEntityId,
+          "Amount": "cannot compute value greater than initial amount"
+        })
+      } else {
+        SplitBreakDown.push({
+          "SplitEntityId": flat[i].SplitEntityId,
+          "Amount":flat[i].SplitValue
+        })
+      }
       Balance -= flat[i].SplitValue
     }
     return Balance
@@ -52,10 +64,22 @@ app.post('/split-payments/compute', (req, res) => {
     for (let i = 0; i < percentage.length; i++) {
       const percentageValue = percentage[i].SplitValue
       const evaluatedValue = (percentageValue/100) * Balance
-      SplitBreakDown.push({
-        "SplitEntityId": percentage[i].SplitEntityId,
-        "Amount": evaluatedValue
-      })
+      if (evaluatedValue < 0) {
+        SplitBreakDown.push({
+          "SplitEntityId": percentage[i].SplitEntityId,
+          "Amount": "cannot compute value lesser than 0"
+        })
+      } else if (evaluatedValue > Amount) {
+        SplitBreakDown.push({
+          "SplitEntityId": percentage[i].SplitEntityId,
+          "Amount": "cannot compute value greater than initial amount"
+        })
+      } else {
+        SplitBreakDown.push({
+          "SplitEntityId": percentage[i].SplitEntityId,
+          "Amount": evaluatedValue
+        })
+      }
       Balance -= evaluatedValue;
     }
     return Balance
@@ -76,11 +100,22 @@ app.post('/split-payments/compute', (req, res) => {
       const values = ratio[x].SplitValue;
       const evaluateRatio = (values/totalRatio) * openingRatioBalance
       Balance -= evaluateRatio
-      console.log(Balance);
-      SplitBreakDown.push({
-        "SplitEntityId": ratio[x].SplitEntityId,
-        "Amount": evaluateRatio
-      })
+      if (evaluateRatio < 0) {
+        SplitBreakDown.push({
+          "SplitEntityId": ratio[x].SplitEntityId,
+          "Amount": "cannot compute value lesser than 0"
+        })
+      } else if (evaluateRatio > Amount) {
+        SplitBreakDown.push({
+          "SplitEntityId": percentage[i].SplitEntityId,
+          "Amount": "cannot compute value greater than initial amount"
+        })
+      } else {
+        SplitBreakDown.push({
+          "SplitEntityId": ratio[x].SplitEntityId,
+          "Amount": evaluateRatio
+        })
+      }
     }
     
     return Balance
@@ -88,8 +123,13 @@ app.post('/split-payments/compute', (req, res) => {
 
   ratioValue();
 
+
   if (Balance < 0) {
     Balance = 0
+  }
+
+  if (body.SplitInfo.length === undefined || body.SplitInfo.length == 0) {
+    return "SplifInfo cannot be less than 1"
   }
 
   const result = {
