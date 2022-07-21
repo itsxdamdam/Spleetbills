@@ -38,7 +38,7 @@ app.post('/split-payments/compute', (req, res) => {
   function flatEvaluation() {
     for (let i = 0; i < flat.length; i++) {
       SplitBreakDown.push({
-        "SplitBreakDown": flat[i].SplitEntityId,
+        "SplitEntityId": flat[i].SplitEntityId,
         "Amount":flat[i].SplitValue
       })
       Balance -= flat[i].SplitValue
@@ -53,7 +53,7 @@ app.post('/split-payments/compute', (req, res) => {
       const percentageValue = percentage[i].SplitValue
       const evaluatedValue = (percentageValue/100) * Balance
       SplitBreakDown.push({
-        "SplitBreakDown": percentage[i].SplitEntityId,
+        "SplitEntityId": percentage[i].SplitEntityId,
         "Amount": evaluatedValue
       })
       Balance -= evaluatedValue;
@@ -78,7 +78,7 @@ app.post('/split-payments/compute', (req, res) => {
       Balance -= evaluateRatio
       console.log(Balance);
       SplitBreakDown.push({
-        "SplitBreakDown": ratio[x].SplitEntityId,
+        "SplitEntityId": ratio[x].SplitEntityId,
         "Amount": evaluateRatio
       })
     }
@@ -88,13 +88,15 @@ app.post('/split-payments/compute', (req, res) => {
 
   ratioValue();
 
+  if (Balance < 0) {
+    Balance = 0
+  }
+
   const result = {
     ID,
     Balance,
     SplitBreakDown
   }
-
-  console.log(result);
 
   if (!body) {
     return res
@@ -107,5 +109,5 @@ app.post('/split-payments/compute', (req, res) => {
 
 
 app.listen(process.env.PORT || 5000, () => {
-  console.log("Server is running on port 3000...");
+  console.log("Server is running on port 5000...");
 })
